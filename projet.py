@@ -1,8 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
-from tkinter import filedialog
-from functools import partial
-
+from tkinter import messagebox, filedialog
 
 class Voiture:
     def __init__(self, ma="", mo="", ane=0, p=0, r=0, co="", ca=""):
@@ -26,36 +23,31 @@ class Voiture:
         self.couleur = couleur_entry.get()
         self.carburant = carburant_entry.get()
 
-    def sauvegarder(self, filename):
-        with open(filename, "w") as f:
-            for voiture in voitures:
-                f.write(f"Marque: {voiture.marque}\n")
-                f.write(f"Modèle: {voiture.modele}\n")
-                f.write(f"Année: {voiture.annee}\n")
-                f.write(f"Prix HT: {voiture.prix_ht}\n")
-                f.write(f"Remise: {voiture.remise}\n")
-                f.write(f"Couleur: {voiture.couleur}\n")
-                f.write(f"Carburant: {voiture.carburant}\n")
-                f.write(f"Prix TTC: {voiture.prix_ttc()}\n")
-        messagebox.showinfo("Sauvegarde", f"Data saved to {filename} successfully")
-
     def __str__(self):
-        return "marque:" + self.marque + ",modele:" + self.modele + ",annee:" + str(self.annee) + ",couleur:" + self.couleur + ",carburant:" + self.carburant + ",prix_ttc:" + str(self.prix_ttc())
-
+        return (f"Marque: {self.marque}\n"
+                f"Modèle: {self.modele}\n"
+                f"Année: {self.annee}\n"
+                f"Prix HT: {self.prix_ht:.2f} €\n"
+                f"Remise: {self.remise} %\n"
+                f"Couleur: {self.couleur}\n"
+                f"Carburant: {self.carburant}\n"
+                f"Prix TTC: {self.prix_ttc():.2f} €\n"
+                "-----------------------------")
 
 def ajouter_voiture():
     v = Voiture()
     v.saisir()
     voitures.append(v)
     messagebox.showinfo("Voiture ajoutée", "Voiture ajoutée avec succès")
-
+    afficher_voitures()
 
 def afficher_voitures():
-    if len(voitures) == 0:
-        messagebox.showinfo("Aucune voiture", "Aucune voiture dans la liste")
+    text_area.delete(1.0, tk.END)
+    if voitures:
+        for v in voitures:
+            text_area.insert(tk.END, str(v) + "\n")
     else:
-        messagebox.showinfo("Voitures", "\n".join(str(v) for v in voitures))
-
+        text_area.insert(tk.END, "Aucune voiture dans la liste")
 
 def supprimer_voiture():
     nom = modele_entry.get()
@@ -63,9 +55,9 @@ def supprimer_voiture():
         if v.modele == nom:
             voitures.remove(v)
             messagebox.showinfo("Voiture supprimée", "Voiture supprimée avec succès")
+            afficher_voitures()
             return
     messagebox.showinfo("Voiture non trouvée", "Voiture non trouvée")
-
 
 def modifier_voiture():
     nom = modele_entry.get()
@@ -73,104 +65,85 @@ def modifier_voiture():
         if v.modele == nom:
             v.saisir()
             messagebox.showinfo("Voiture modifiée", "Voiture modifiée avec succès")
+            afficher_voitures()
             return
     messagebox.showinfo("Voiture non trouvée", "Voiture non trouvée")
 
-
 def rechercher_voitures():
     carburant = carburant_entry.get()
-    result = []
-    for v in voitures:
-        if v.carburant == carburant:
-            result.append(str(v))
-    if len(result) > 0:
-        messagebox.showinfo("Voitures trouvées", "\n".join(result))
+    result = [v for v in voitures if v.carburant == carburant]
+    text_area.delete(1.0, tk.END)
+    if result:
+        for v in result:
+            text_area.insert(tk.END, str(v) + "\n")
     else:
-        messagebox.showinfo("Aucune voiture", "Aucune voiture correspondante")
-
+        text_area.insert(tk.END, "Aucune voiture correspondante")
 
 def calculer_moyenne():
-    total = 0
+    total = sum(v.prix_ttc() for v in voitures)
     nb_voitures = len(voitures)
-    for v in voitures:
-        total += v.prix_ttc()
     if nb_voitures > 0:
         moyenne = total / nb_voitures
         messagebox.showinfo("Moyenne des prix TTC", f"Moyenne des prix TTC après remise : {moyenne:.2f} €")
     else:
         messagebox.showinfo("Aucune voiture", "Aucune voiture dans la liste")
 
-
-       
-
 def sauvegarder_voitures():
     filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files", "*.txt")])
     if filename:
-        for v in voitures:
-            v.sauvegarder(filename)
+        with open(filename, "w") as f:
+            for v in voitures:
+                f.write(str(v) + "\n")
         messagebox.showinfo("Enregistrement", "Vos données sont enregistrées.")
 
 def quitter():
     root.destroy()
 
-
-choix = None
 voitures = []
 
 root = tk.Tk()
-root.title("Formulaire Voiture")
-root.geometry('302x325')
+root.title("Gestion des Voitures")
+root.geometry('400x500')
 
+# Centrer la fenêtre
+window_width = 400
+window_height = 500
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+center_x = int(screen_width / 2 - window_width / 2)
+center_y = int(screen_height / 2 - window_height / 2)
+root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
 
-marque_label = tk.Label(root, text="Marque:")
-modele_label = tk.Label(root, text="Modèle:")
-annee_label = tk.Label(root, text="Année:")
-prix_ht_label = tk.Label(root, text="Prix HT:")
-remise_label = tk.Label(root, text="Remise (%):")
-couleur_label = tk.Label(root, text="Couleur:")
-carburant_label = tk.Label(root, text="Carburant:")
+# Création des champs de saisie
+fields = ["Marque", "Modèle", "Année", "Prix HT", "Remise (%)", "Couleur", "Carburant"]
+entries = []
+for i, field in enumerate(fields):
+    label = tk.Label(root, text=field + ":")
+    label.grid(row=i, column=0, padx=10, pady=5, sticky="e")
+    entry = tk.Entry(root)
+    entry.grid(row=i, column=1, padx=10, pady=5, sticky="w")
+    entries.append(entry)
 
-marque_label.grid(row=0, column=0)
-modele_label.grid(row=1, column=0)
-annee_label.grid(row=2, column=0)
-prix_ht_label.grid(row=3, column=0)
-remise_label.grid(row=4, column=0)
-couleur_label.grid(row=5, column=0)
-carburant_label.grid(row=6, column=0)
+marque_entry, modele_entry, annee_entry, prix_ht_entry, remise_entry, couleur_entry, carburant_entry = entries
 
-marque_entry = tk.Entry(root,bg="cyan")
-modele_entry = tk.Entry(root,bg="cyan")
-annee_entry = tk.Entry(root,bg="cyan")
-prix_ht_entry = tk.Entry(root,bg="cyan")
-remise_entry = tk.Entry(root,bg="cyan")
-couleur_entry = tk.Entry(root,bg="cyan")
-carburant_entry = tk.Entry(root,bg="cyan")
+# Zone de texte pour afficher les voitures
+text_area = tk.Text(root, height=10, width=50)
+text_area.grid(row=len(fields), column=0, columnspan=2, padx=10, pady=10)
 
-marque_entry.grid(row=0, column=1)
-modele_entry.grid(row=1, column=1)
-annee_entry.grid(row=2, column=1)
-prix_ht_entry.grid(row=3, column=1)
-remise_entry.grid(row=4, column=1)
-couleur_entry.grid(row=5, column=1)
-carburant_entry.grid(row=6, column=1)
+# Boutons
+buttons = [
+    ("Ajouter", ajouter_voiture),
+    ("Afficher", afficher_voitures),
+    ("Supprimer", supprimer_voiture),
+    ("Modifier", modifier_voiture),
+    ("Rechercher", rechercher_voitures),
+    ("Calculer", calculer_moyenne),
+    ("Enregistrer", sauvegarder_voitures),
+    ("Quitter", quitter)
+]
 
-
-ajouter_button = tk.Button(root, text="Ajouter", command=ajouter_voiture)
-afficher_button = tk.Button(root, text="Afficher", command=afficher_voitures)
-supprimer_button = tk.Button(root, text="Supprimer", command=supprimer_voiture)
-modifier_button = tk.Button(root, text="Modifier", command=modifier_voiture)
-rechercher_button = tk.Button(root, text="Rechercher", command=rechercher_voitures)
-calculer_button = tk.Button(root, text="Calculer", command=calculer_moyenne)
-enregistrer_button = tk.Button(root, text="Enregistrer", command=sauvegarder_voitures)
-quitter_button = tk.Button(root, text="Quitter", command=quitter)
-
-ajouter_button.grid(row=7, column=0)
-afficher_button.grid(row=7, column=1)
-supprimer_button.grid(row=8,column=0)
-modifier_button.grid(row=8, column=1)
-rechercher_button.grid(row=9, column=0)
-calculer_button.grid(row=9, column=1)
-enregistrer_button.grid(row=10, column=1)
-quitter_button.grid(row=10, column=0, )
+for i, (text, command) in enumerate(buttons):
+    button = tk.Button(root, text=text, command=command)
+    button.grid(row=len(fields) + 1 + i // 2, column=i % 2, padx=10, pady=5)
 
 root.mainloop()

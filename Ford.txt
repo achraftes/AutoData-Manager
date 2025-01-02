@@ -1,0 +1,18 @@
+Marque: Ford
+Modèle: Mustang
+Année: 2018
+Prix HT: 3300000.00 €
+Remise: 8.0 %
+Couleur: Noir
+Carburant: Essence
+Prix TTC: 3643200.00 €
+-----------------------------
+Marque: Ford
+Modèle: Mustang
+Année: 2018
+Prix HT: 3300000.00 €
+Remise: 8.0 %
+Couleur: Noir
+Carburant: Essence
+Prix TTC: 3643200.00 €
+-----------------------------
